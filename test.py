@@ -1,5 +1,6 @@
 import re
 from urllib.request import urlopen
+import time
 
 def getbook(Detail_ID):
     Book_link='http://ebooks.cmanuf.com/detail?id='
@@ -31,10 +32,15 @@ def getbook(Detail_ID):
     url=url.replace("pdfReadereneric/web/viewer.html?file=../../../","")
     url=url.replace("\"'","")
     print(url)
+    f=open("URL.txt","a+")
+    f.write("\n")
+    f.write(url)
+    f.close()
     #获取并处理下载地址
 def getID():
-    Detail_ID=100
-    while Detail_ID<=120:
+    Detail_ID=1
+    while Detail_ID<=2:
+        time.sleep(5)
         getbook(Detail_ID)
         Detail_ID=Detail_ID+1
 
