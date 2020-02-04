@@ -1,46 +1,57 @@
 import re
 from urllib.request import urlopen
+import time
+import requests
+from fake_useragent import UserAgent
+proxy = '127.0.0.1:10809'
+proxies = {
+    'http': 'http://' + proxy,
+    'https': 'https://' + proxy,
+}
+ua=UserAgent()
+header={'User-Agent':ua.random}
 
-ua_list = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML like Gecko) Chrome/44.0.2403.155 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
-"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
-"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2226.0 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.4; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36",
-"Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2224.3 Safari/537.36",
-"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36",
-"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36",
-"Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"
-]
-ua=random.choice(ua_list)
 
-Book_ID=list(range(10000))
-Book_ID_Str=Book_ID[i]
-Book_link='http://ebooks.cmanuf.com/detail?id='
-List_book_link=list(Book_link)
-List_book_ID=list(Book_ID_Str)
-List_book_link=List_book_link+List_book_ID
-Str_book_link="".join(List_book_link)
-Book_detail = urlopen(Str_book_link).read().decode('utf-8')
-Reader_ID = re.findall(r"pdfReader\?id=(.+?)\"",Book_detail)
-ID=Reader_ID[0]
-#获取Reader ID
+def getbook(Detail_ID):
+    Book_link='http://ebooks.cmanuf.com/detail?id='
+    list_book_link=list(Book_link)
+    list_detail_ID=list(str(Detail_ID))#将Detail_ID转换为字符串后再转换为list
+    list_book_link=list_book_link+list_detail_ID
+    Str_link_book="".join(list_book_link)
+    #获取Detail URL
 
-Reader_link = 'http://ebooks.cmanuf.com/pdfReader?id='
-List_link_Reader = list(Reader_link)
-List_ID = list(ID)
-List_link_Reader=List_link_Reader+List_ID
-Str_link_Reader="".join(List_link_Reader)
-#获取Reader地址
+    Book_detail = requests.get(Str_link_book, proxies=proxies,headers=header)
+    Book_ID = re.findall(r"pdfReader\?id=(.+?)\"",Book_detail.text)
+    ID=Book_ID[0]
+    #获取Reader ID
 
-Reader = urlopen(Str_link_Reader).read().decode('utf-8')
-url = re.findall(r"ifm\.src=(.+?);", Reader)
-url=re.sub('[\\\]','',url)
-url=re.sub('\[|/g','',url)
-url=re.sub(']','',url)
-url=url.replace("pdfReadereneric/web/viewer.html?file=../../../","")
-print(url)
-#获取下载地址
+    Reader_link = 'http://ebooks.cmanuf.com/pdfReader?id='
+    List_link_Reader = list(Reader_link)
+    List_ID = list(ID)
+    List_link_Reader=List_link_Reader+List_ID
+    Str_link_Reader="".join(List_link_Reader)
+    #获取Reader地址
+
+    Reader = requests.get(Str_link_Reader,proxies=proxies,headers=header)
+    url = re.findall(r"ifm\.src=(.+?);", Reader.text)
+    url=str(url)
+    url=re.sub(r"'\"",'',url)
+    url = re.sub('[\\\]','',url)
+    url=re.sub('\[|/g','',url)
+    url=re.sub(']','',url)
+    url=url.replace("pdfReadereneric/web/viewer.html?file=../../../","")
+    url=url.replace("\"'","")
+    print(url)
+    f=open("URL.txt","a+")
+    f.write("\n")
+    f.write(url)
+    f.close()
+    #获取并处理下载地址
+def getID():
+    Detail_ID=1
+    while Detail_ID<=2:
+        time.sleep(2)
+        getbook(Detail_ID)
+        Detail_ID=Detail_ID+1
+
+getID()
