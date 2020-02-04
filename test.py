@@ -1,6 +1,16 @@
 import re
 from urllib.request import urlopen
 import time
+import requests
+from fake_useragent import UserAgent
+proxy = '127.0.0.1:10809'
+proxies = {
+    'http': 'http://' + proxy,
+    'https': 'https://' + proxy,
+}
+ua=UserAgent()
+header={'User-Agent':ua.random}
+
 
 def getbook(Detail_ID):
     Book_link='http://ebooks.cmanuf.com/detail?id='
@@ -10,8 +20,8 @@ def getbook(Detail_ID):
     Str_link_book="".join(list_book_link)
     #获取Detail URL
 
-    Book_detail = urlopen(Str_link_book).read().decode('utf-8')
-    Book_ID = re.findall(r"pdfReader\?id=(.+?)\"",Book_detail)
+    Book_detail = requests.get(Str_link_book, proxies=proxies,headers=header)
+    Book_ID = re.findall(r"pdfReader\?id=(.+?)\"",Book_detail.text)
     ID=Book_ID[0]
     #获取Reader ID
 
@@ -22,8 +32,8 @@ def getbook(Detail_ID):
     Str_link_Reader="".join(List_link_Reader)
     #获取Reader地址
 
-    Reader = urlopen(Str_link_Reader).read().decode('utf-8')
-    url = re.findall(r"ifm\.src=(.+?);", Reader)
+    Reader = requests.get(Str_link_Reader,proxies=proxies,headers=header)
+    url = re.findall(r"ifm\.src=(.+?);", Reader.text)
     url=str(url)
     url=re.sub(r"'\"",'',url)
     url = re.sub('[\\\]','',url)
@@ -40,7 +50,7 @@ def getbook(Detail_ID):
 def getID():
     Detail_ID=1
     while Detail_ID<=2:
-        time.sleep(5)
+        time.sleep(2)
         getbook(Detail_ID)
         Detail_ID=Detail_ID+1
 
