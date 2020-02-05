@@ -6,6 +6,6 @@
 
 `python3 d.py`
 
-使用本地HTTP匿名代理，随机生成UA模拟浏览器，PDF下载URL位于当前目录下的URL.txt
+使用本地HTTP匿名代理，随机生成UA模拟浏览器，PDF下载URL位于当前目录下的URL.txt，注意下载时需要添加HTTP referer。
 
 ~~这个d.py我自己都看不懂~~
